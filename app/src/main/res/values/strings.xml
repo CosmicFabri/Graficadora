@@ -1,3 +1,28 @@
 <resources>
     <string name="app_name">Graficadora</string>
+
+    <!-- Scaffolding (top, bottom bar) -->
+    <string name="topAppBarText">Graficadora Matemática</string>
+    <string name="bottomAppBarText">Desarrollo Móvil</string>
+
+    <!-- Formulario -->
+
+    <!-- Etiquetas -->
+    <string name="labelY">y =</string>
+    <string name="labelEvaluarPor">Evaluar por:</string>
+    <string name="labelMinimo">-20</string>
+    <string name="labelMaximo">20</string>
+    <string name="labelDominio">Dominio:</string>
+
+    <!-- Select -->
+    <string name="selectEvaluarPorPunto">Punto</string>
+    <string name="selectEvaluarPorIntervalo">Intervalo</string>
+    <string name="selectIntervaloCerradoInicio">[</string>
+    <string name="selectIntervaloCerradoFinal">]</string>
+    <string name="selectIntervaloAbiertoInicio">(</string>
+    <string name="selectIntervaloAbiertoFinal">)</string>
+
+    <!-- Botón -->
+    <string name="botonGraficar">Graficar</string>
+
 </resources>
