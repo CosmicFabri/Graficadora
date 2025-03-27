@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.graficadora.ui.theme.GraficadoraTheme
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 
@@ -53,6 +54,11 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VistaPrincipal(modifier: Modifier = Modifier) {
+    val opcionesEvaluar = arrayOf(
+        stringResource(R.string.selectEvaluarPorPunto),
+        stringResource(R.string.selectEvaluarPorIntervalo))
+    var opcionSeleccionada by remember { mutableStateOf(opcionesEvaluar[0]) }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -90,7 +96,7 @@ fun VistaPrincipal(modifier: Modifier = Modifier) {
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                Graficador(modifier)
+                Graficador()
             }
 
             // Formulario
@@ -105,13 +111,17 @@ fun VistaPrincipal(modifier: Modifier = Modifier) {
                 EntradaUsuario(modifier)
 
                 // Evaluar por punto o intervalo
-                EvaluarPor(modifier)
+                EvaluarPor(modifier, opcionesEvaluar) { nuevaOpcion ->
+                    opcionSeleccionada = nuevaOpcion
+                }
 
-                // Rango del dominio
-                RangoDominio(modifier)
+                // Seleccionar punto a evaluar
+                SeleccionPunto(modifier, opcionSeleccionada)
 
-                SeleccionDominio(modifier)
+                // Seleccionar un dominio a evaluar
+                SeleccionDominio(modifier, opcionSeleccionada)
 
+                // Graficar la función
                 BotonGraficar(modifier)
             }
         }
@@ -119,7 +129,7 @@ fun VistaPrincipal(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun Graficador(modifier: Modifier) {
+fun Graficador() {
     val graficadora = remember { Graficadora() }
     graficadora.Renderizar()
 }
@@ -146,10 +156,7 @@ fun EntradaUsuario(modifier: Modifier) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EvaluarPor(modifier: Modifier) {
-    val opcionesEvaluar = arrayOf(
-        stringResource(R.string.selectEvaluarPorPunto),
-        stringResource(R.string.selectEvaluarPorIntervalo))
+fun EvaluarPor(modifier: Modifier, opcionesEvaluar: Array<String>, onSelectionChange: (String) -> Unit) {
     var menuExpandido by remember { mutableStateOf(false) }
     var opcionSeleccionada by remember { mutableStateOf(opcionesEvaluar[0]) }
 
@@ -185,6 +192,7 @@ fun EvaluarPor(modifier: Modifier) {
                         onClick = {
                             opcionSeleccionada = item
                             menuExpandido = false
+                            onSelectionChange(item)
                         }
                     )
                 }
@@ -194,8 +202,8 @@ fun EvaluarPor(modifier: Modifier) {
 }
 
 @Composable
-fun RangoDominio(modifier: Modifier) {
-    var posicionSlider by remember { mutableStateOf(0f) }
+fun SeleccionPunto(modifier: Modifier, opcionSeleccionada: String) {
+    var posicionSlider by remember { mutableFloatStateOf(0f) }
 
     Row(
         modifier
@@ -208,6 +216,7 @@ fun RangoDominio(modifier: Modifier) {
         Slider(
             value = posicionSlider,
             onValueChange = { posicionSlider = it },
+            enabled = opcionSeleccionada.equals("Punto"),
             modifier = Modifier
                 .width(300.dp)
         )
@@ -216,7 +225,7 @@ fun RangoDominio(modifier: Modifier) {
 }
 
 @Composable
-fun SeleccionDominio(modifier: Modifier) {
+fun SeleccionDominio(modifier: Modifier, opcionSeleccionada: String) {
     Row(
         modifier
             .padding(start = 20.dp)
@@ -231,36 +240,38 @@ fun SeleccionDominio(modifier: Modifier) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Bottom
         ) {
-            SelectInicioIntervalo(modifier.width(74.dp))
-            TextFieldIntervalo(modifier.width(60.dp))
+            SelectInicioIntervalo(modifier.width(74.dp), opcionSeleccionada)
+            TextFieldIntervalo(modifier.width(60.dp), opcionSeleccionada)
             Text(text = ",")
-            TextFieldIntervalo(modifier.width(60.dp))
-            SelectFinalIntervalo(modifier.width(74.dp))
+            TextFieldIntervalo(modifier.width(60.dp), opcionSeleccionada)
+            SelectFinalIntervalo(modifier.width(74.dp), opcionSeleccionada)
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SelectInicioIntervalo(modifier: Modifier) {
+fun SelectInicioIntervalo(modifier: Modifier, opcionSeleccionada: String) {
     val opcionesEvaluar = arrayOf(
         stringResource(R.string.selectIntervaloCerradoInicio),
         stringResource(R.string.selectIntervaloAbiertoInicio)
     )
     var menuExpandido by remember { mutableStateOf(false) }
-    var opcionSeleccionada by remember { mutableStateOf(opcionesEvaluar[0]) }
+    var intervaloSeleccionado by remember { mutableStateOf(opcionesEvaluar[0]) }
 
     ExposedDropdownMenuBox(
         expanded = menuExpandido,
         onExpandedChange = {
-            menuExpandido = !menuExpandido
+            if (opcionSeleccionada.equals("Intervalo"))
+                menuExpandido = !menuExpandido
         },
         modifier.width(250.dp)
     ) {
         TextField(
-            value = opcionSeleccionada,
+            value = intervaloSeleccionado,
             onValueChange = { },
             readOnly = true,
+            enabled = opcionSeleccionada.equals("Intervalo"),
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuExpandido) },
             modifier = Modifier.menuAnchor()
         )
@@ -272,7 +283,7 @@ fun SelectInicioIntervalo(modifier: Modifier) {
                 DropdownMenuItem(
                     text = { Text(text = item) },
                     onClick = {
-                        opcionSeleccionada = item
+                        intervaloSeleccionado = item
                         menuExpandido = false
                     }
                 )
@@ -283,25 +294,27 @@ fun SelectInicioIntervalo(modifier: Modifier) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SelectFinalIntervalo(modifier: Modifier) {
+fun SelectFinalIntervalo(modifier: Modifier, opcionSeleccionada: String) {
     val opcionesEvaluar = arrayOf(
         stringResource(R.string.selectIntervaloCerradoFinal),
         stringResource(R.string.selectIntervaloAbiertoFinal)
     )
     var menuExpandido by remember { mutableStateOf(false) }
-    var opcionSeleccionada by remember { mutableStateOf(opcionesEvaluar[0]) }
+    var intervaloSeleccionado by remember { mutableStateOf(opcionesEvaluar[0]) }
 
     ExposedDropdownMenuBox(
         expanded = menuExpandido,
         onExpandedChange = {
-            menuExpandido = !menuExpandido
+            if (opcionSeleccionada.equals("Intervalo"))
+                menuExpandido = !menuExpandido
         },
         modifier.width(250.dp)
     ) {
         TextField(
-            value = opcionSeleccionada,
+            value = intervaloSeleccionado,
             onValueChange = { },
             readOnly = true,
+            enabled = opcionSeleccionada.equals("Intervalo"),
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuExpandido) },
             modifier = Modifier.menuAnchor()
         )
@@ -313,7 +326,7 @@ fun SelectFinalIntervalo(modifier: Modifier) {
                 DropdownMenuItem(
                     text = { Text(text = item) },
                     onClick = {
-                        opcionSeleccionada = item
+                        intervaloSeleccionado = item
                         menuExpandido = false
                     }
                 )
@@ -323,11 +336,12 @@ fun SelectFinalIntervalo(modifier: Modifier) {
 }
 
 @Composable
-fun TextFieldIntervalo(modifier: Modifier) {
+fun TextFieldIntervalo(modifier: Modifier, opcionSeleccionada: String) {
     var texto by remember { mutableStateOf("") }
 
     Box(modifier) {
         TextField(
+            enabled = opcionSeleccionada.equals("Intervalo"),
             value = texto,
             onValueChange = { texto = it }
         )
