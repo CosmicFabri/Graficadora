@@ -61,7 +61,7 @@ class Graficadora {
             Column {
                 Canvas(
                     modifier = Modifier
-                        .padding(margenHorizontal.dp, margenVertical.dp)
+                        .padding(start = margenHorizontal.dp, end = margenHorizontal.dp, top = margenVertical.dp)
                         .aspectRatio(3 / 2f)
                 ) {
                     anchoCanvas = size.width

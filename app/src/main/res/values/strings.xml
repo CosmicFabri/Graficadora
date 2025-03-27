@@ -3,9 +3,7 @@
 
     <!-- Scaffolding (top, bottom bar) -->
     <string name="topAppBarText">Graficadora Matemática</string>
-    <string name="bottomAppBarText">Desarrollo Móvil</string>
-
-    <!-- Formulario -->
+    <string name="bottomAppBarText">Desarrollo de Aplicaciones Móviles</string>
 
     <!-- Etiquetas -->
     <string name="labelY">y =</string>
@@ -23,6 +21,6 @@
     <string name="selectIntervaloAbiertoFinal">)</string>
 
     <!-- Botón -->
-    <string name="botonGraficar">Graficar</string>
+    <string name="btnGraficar">Graficar</string>
 
 </resources>
