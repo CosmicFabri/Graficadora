@@ -25,6 +25,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 
 class Graficadora {
     // Usamos SnapshotStateList para que Compose detecte los cambios
+    private val evaluador: Evaluador = Evaluador()
 
     //Escritura
     private val _puntos = mutableStateListOf<Offset>()
@@ -73,6 +74,7 @@ class Graficadora {
             }
         }
     }
+
     //Define el contorno y las lineas de guia
     private fun DrawScope.dibujarArea() {
         val contorno = 1.dp.toPx()
@@ -83,6 +85,7 @@ class Graficadora {
         //Definimos la linea de guia vertical
         val verticalLineGuide = 1
         val verticalSize = anchoCanvas / (verticalLineGuide + 1)
+
         repeat(verticalLineGuide){ i ->
             val startX = verticalSize *(i+1)
             drawLine(
@@ -92,6 +95,7 @@ class Graficadora {
                 strokeWidth = contorno
             )
         }
+
         //Definimos la linea de guia horizontal
         val horizontalLineGuide = 1
         val horizontalSize = altoCanvas / (horizontalLineGuide + 1)
@@ -105,6 +109,7 @@ class Graficadora {
             )
         }
     }
+
     //Función que dibuja puntos
     private fun DrawScope.dibujarPuntos(puntos: List<Offset>) {
         drawPoints(
@@ -113,5 +118,22 @@ class Graficadora {
             color = Color.Red,
             strokeWidth = 5.dp.toPx()
         )
+    }
+
+    // Función que toma la f(x), y el punto x a evaluar, y dibuja el par de puntos (x, f(x))
+    public fun dibujarParPuntos(funcion: String, x: Float) {
+        // De float a char
+        val punto = x.toString()[0]
+
+        val infija = funcion.toList().toTypedArray()
+        val posfija = evaluador.infijaAPosfija(infija)
+
+        // El x evaluado en la función
+        val evaluacion = evaluador.evaluarPunto(punto, posfija)
+
+        agregarPunto(punto.toString().toFloat(), evaluacion.toFloat())
+
+        println(punto)
+        println(evaluacion)
     }
 }

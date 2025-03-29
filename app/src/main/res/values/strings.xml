@@ -8,8 +8,8 @@
     <!-- Etiquetas -->
     <string name="labelY">y =</string>
     <string name="labelEvaluarPor">Evaluar por:</string>
-    <string name="labelMinimo">-20</string>
-    <string name="labelMaximo">20</string>
+    <string name="labelMinimo">-9</string>
+    <string name="labelMaximo">9</string>
     <string name="labelDominio">Dominio:</string>
 
     <!-- Select -->

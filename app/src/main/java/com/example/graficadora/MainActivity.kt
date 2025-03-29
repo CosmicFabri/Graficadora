@@ -37,15 +37,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import kotlin.math.roundToInt
 
 
 class MainActivity : ComponentActivity() {
+    lateinit var graficadora: Graficadora
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        graficadora = Graficadora()
+
         enableEdgeToEdge()
         setContent {
             GraficadoraTheme {
-                VistaPrincipal()
+                VistaPrincipal(graficadora)
             }
         }
     }
@@ -53,11 +58,19 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VistaPrincipal(modifier: Modifier = Modifier) {
+fun VistaPrincipal(graficadora: Graficadora, modifier: Modifier = Modifier) {
     val opcionesEvaluar = arrayOf(
         stringResource(R.string.selectEvaluarPorPunto),
         stringResource(R.string.selectEvaluarPorIntervalo))
+
+    // Punto o intervalo
     var opcionSeleccionada by remember { mutableStateOf(opcionesEvaluar[0]) }
+
+    // La función "y" que ingresa el usuario
+    var funcion by remember { mutableStateOf("") }
+
+    // Este es el punto x que se va a evaluar en la función "y"
+    var posicionSlider by remember { mutableFloatStateOf(0f) }
 
     Scaffold(
         topBar = {
@@ -96,7 +109,7 @@ fun VistaPrincipal(modifier: Modifier = Modifier) {
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                Graficador()
+                Graficador(graficadora)
             }
 
             // Formulario
@@ -108,7 +121,11 @@ fun VistaPrincipal(modifier: Modifier = Modifier) {
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
                 // Entrada del usuario
-                EntradaUsuario(modifier)
+                EntradaUsuario(
+                    modifier = modifier,
+                    funcion = funcion,
+                    onFuncionChange = { newValue -> funcion = newValue }
+                )
 
                 // Evaluar por punto o intervalo
                 EvaluarPor(modifier, opcionesEvaluar) { nuevaOpcion ->
@@ -116,28 +133,43 @@ fun VistaPrincipal(modifier: Modifier = Modifier) {
                 }
 
                 // Seleccionar punto a evaluar
-                SeleccionPunto(modifier, opcionSeleccionada)
+                SeleccionPunto(
+                    modifier = modifier,
+                    opcionSeleccionada = opcionSeleccionada,
+                    posicionSlider = posicionSlider,
+                    onPosicionSliderChange = { newValue ->
+                        posicionSlider = newValue
+                    }
+                )
 
                 // Seleccionar un dominio a evaluar
                 SeleccionDominio(modifier, opcionSeleccionada)
 
                 // Graficar la función
-                BotonGraficar(modifier)
+                BotonGraficar(
+                    graficadora = graficadora,
+                    funcion = funcion,
+                    punto = posicionSlider,
+                    opcion = opcionSeleccionada,
+                    modifier = modifier
+                )
             }
         }
     }
 }
 
 @Composable
-fun Graficador() {
-    val graficadora = remember { Graficadora() }
+fun Graficador(graficadora: Graficadora) {
+    // val graficadora = remember { Graficadora() }
     graficadora.Renderizar()
 }
 
 @Composable
-fun EntradaUsuario(modifier: Modifier) {
-    var funcion by remember { mutableStateOf("") }
-
+fun EntradaUsuario(
+    modifier: Modifier,
+    funcion: String,
+    onFuncionChange: (String) -> Unit 
+) {
     Row(
         modifier
             .padding(start = 20.dp)
@@ -148,8 +180,8 @@ fun EntradaUsuario(modifier: Modifier) {
         Text(text = stringResource(R.string.labelY))
         TextField(
             value = funcion,
-            onValueChange = { funcion = it },
-            modifier.width(320.dp)
+            onValueChange = onFuncionChange,  // Usamos el callback
+            modifier = Modifier.width(320.dp)
         )
     }
 }
@@ -202,9 +234,12 @@ fun EvaluarPor(modifier: Modifier, opcionesEvaluar: Array<String>, onSelectionCh
 }
 
 @Composable
-fun SeleccionPunto(modifier: Modifier, opcionSeleccionada: String) {
-    var posicionSlider by remember { mutableFloatStateOf(0f) }
-
+fun SeleccionPunto(
+    modifier: Modifier,
+    opcionSeleccionada: String,
+    posicionSlider: Float,
+    onPosicionSliderChange: (Float) -> Unit
+) {
     Row(
         modifier
             .padding(start = 20.dp)
@@ -214,14 +249,22 @@ fun SeleccionPunto(modifier: Modifier, opcionSeleccionada: String) {
     ) {
         Text(text = stringResource(R.string.labelMinimo))
         Slider(
-            value = posicionSlider,
-            onValueChange = { posicionSlider = it },
-            enabled = opcionSeleccionada.equals("Punto"),
             modifier = Modifier
-                .width(300.dp)
+                .width(300.dp),
+            value = posicionSlider,
+            onValueChange = onPosicionSliderChange,
+            enabled = opcionSeleccionada.equals("Punto"),
+            steps = 17,
+            valueRange = -9f..9f
         )
         Text(text = stringResource(R.string.labelMaximo))
     }
+    Text(
+        text = posicionSlider.roundToInt().toString(),
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+    )
 }
 
 @Composable
@@ -349,9 +392,36 @@ fun TextFieldIntervalo(modifier: Modifier, opcionSeleccionada: String) {
 }
 
 @Composable
-fun BotonGraficar(modifier: Modifier) {
+fun BotonGraficar(
+    graficadora: Graficadora,
+    funcion: String,
+    punto: Float,
+    opcion: String,
+    modifier: Modifier
+) {
     Button(
-        onClick = {},
+        onClick = {
+            when (opcion) {
+                "Punto" -> {
+                    // Graficar solo el par de puntos
+                    // graficadora.dibujarParPuntos(funcion, punto)
+                    // Ver las medidas del canva
+                    graficadora.agregarPunto(100f, 0f)
+                    graficadora.agregarPunto(200f, 0f)
+                    graficadora.agregarPunto(300f, 0f)
+                    graficadora.agregarPunto(400f, 0f)
+                    graficadora.agregarPunto(500f, 0f)
+
+                    graficadora.agregarPunto(0f, 100f)
+                    graficadora.agregarPunto(0f, 200f)
+                    graficadora.agregarPunto(0f, 300f)
+                    graficadora.agregarPunto(0f, 400f)
+                }
+                "Intervalo" -> {
+
+                }
+            }
+        },
         modifier
             .padding(start = 20.dp)
             .fillMaxWidth(0.95f)
